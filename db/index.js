@@ -37,7 +37,7 @@
 
 const { Client } = require('pg') // imports the pg module
 
-const client = new Client('postgres://localhost:5432/juicebox-dev');
+const client = new Client('postgres://postgres:password@localhost:6543/juiceboxdev');
 
 /**
  * USER Methods
@@ -201,7 +201,7 @@ async function getPostsByUser(userId) {
         post => getPostById( post.id )
       ));
 
-    return rows;
+    return posts;
   } catch (error) {
     throw error;
   }
@@ -418,6 +418,19 @@ async function testDB() {
     }
   }
 
+  async function getAllTags() {
+    try {
+      const { rows:tagIds } = await client.query(`
+        SELECT *
+        FROM tags;
+      `);
+    
+  
+      return tagIds;
+    } catch (error) {
+      throw error;
+    }
+  }
   
 
 module.exports = {  
@@ -433,5 +446,7 @@ module.exports = {
   createTags,
   createPostTag,
   addTagsToPost,
-  getPostById
+  getPostById,
+  getAllTags
+  
 }

@@ -37,7 +37,7 @@
 
 const { Client } = require('pg') // imports the pg module
 
-const client = new Client('postgres://postgres:password@localhost:6543/juiceboxdev');
+const client = new Client(process.env.DATABASE_URL);
 
 /**
  * USER Methods
@@ -386,13 +386,54 @@ async function testDB() {
     }
   }
 
-  async function getPostById(postId) {
+//   async function getPostById(postId) {
+//     try {
+//       const { rows: [ post ]  } = await client.query(`
+//         SELECT *
+//         FROM posts
+//         WHERE id=$1;
+//       `, [postId]);
+  
+//       const { rows: tags } = await client.query(`
+//         SELECT tags.*
+//         FROM tags
+//         JOIN post_tags ON tags.id=post_tags."tagId"
+//         WHERE post_tags."postId"=$1;
+//       `, [postId])
+  
+//       const { rows: [author] } = await client.query(`
+//         SELECT id, username, name, location
+//         FROM users
+//         WHERE id=$1;
+//       `, [post.authorId])
+  
+//       post.tags = tags;
+//       post.author = author;
+  
+//       delete post.authorId;
+  
+//       return post;
+//     } catch (error) {
+//       throw error;
+//     }
+//   }
+
+async function getPostById(postId) {
     try {
       const { rows: [ post ]  } = await client.query(`
         SELECT *
         FROM posts
         WHERE id=$1;
       `, [postId]);
+  
+      // THIS IS NEW
+      if (!post) {
+        throw {
+          name: "PostNotFoundError",
+          message: "Could not find a post with that postId"
+        };
+      }
+      // NEWNESS ENDS HERE
   
       const { rows: tags } = await client.query(`
         SELECT tags.*
@@ -432,6 +473,19 @@ async function testDB() {
     }
   }
   
+  async function getUserByUsername(username) {
+    try {
+      const { rows: [user] } = await client.query(`
+        SELECT *
+        FROM users
+        WHERE username=$1;
+      `, [username]);
+  
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
 
 module.exports = {  
   client,
@@ -447,6 +501,6 @@ module.exports = {
   createPostTag,
   addTagsToPost,
   getPostById,
-  getAllTags
-  
+  getAllTags,
+  getUserByUsername
 }
